@@ -7,41 +7,44 @@ import importlib.machinery
 import subprocess
 import setuptools
 
+
 def build_docs(output_type, package_dir, docs_dir, docs_build_dir):
     import sphinx.apidoc
     import sphinx.cmdline
 
     args = [None, '-E', '-f', '-s', 'md', '-o', docs_dir, package_dir]
     sphinx.apidoc.main(args)
-    
+
     kwargs = {
-        'html_title': package_name, 
+        'html_title': package_name,
         'htmlhelp_basename': package_name,
         'project': package_name,
         'copyright': copyright,
         'version': version
     }
-    args = [None, '-q']    
+    args = [None, '-q']
     for k_v in kwargs.items():
         args += ['-D', '%s=%s' % k_v]
     args += ['-b', output_type, docs_dir, docs_build_dir]
     sphinx.cmdline.main(args)
-    
-def run_tests(test_dir):    
-    subprocess.check_call([sys.executable, '-m', 'unittest', 'discover', '-s', test_dir]) 
-    
-def build_binaries():    
+
+
+def run_tests(test_dir):
+    subprocess.check_call([sys.executable, '-m', 'unittest', 'discover', '-s', test_dir])
+
+
+def build_binaries():
     import cx_Freeze
     packages = setuptools.find_packages(exclude=['tests'])
-    
+
     executables = []
     for sciptfile in scipt_files:
         print(sciptfile)
         script_path = os.path.join(package_dir, '%s.py' % sciptfile)
         executables.append(cx_Freeze.Executable(
             script=script_path,
-            base=None, # if no GUI
-            #targetName=sciptfile + ".exe",
+            base=None,  # if no GUI
+            # targetName=sciptfile + ".exe",
             compress=True,
             copyDependentFiles=True,
             initScript=None,
@@ -50,16 +53,16 @@ def build_binaries():
             appendScriptToLibrary=False,
             icon=icon
         ))
-    
+
     cx_Freeze.setup(
         name=package_name,
         version=version,
         author=author,
         author_email=email,
         description=description,
-        license=license,
+        license=license_,
         keywords=keywords,
-        url=url,        
+        url=url,
         long_description=readme,
         options={
             'build_exe': {
@@ -82,6 +85,7 @@ def build_binaries():
         executables=executables
     )
 
+
 def build():
     packages = setuptools.find_packages(exclude=['tests'])
     setuptools.setup(
@@ -96,12 +100,13 @@ def build():
         description=description,
         license=license,
         keywords=keywords,
-        url=url,        
+        url=url,
         long_description=readme
     )
-    
+
+
 if __name__ == '__main__':
-    # collaect information    
+    # collaect information
     root_dir = os.path.abspath(os.path.dirname(__file__))
     package_name = os.path.basename(root_dir)
     package_dir = os.path.join(root_dir, package_name)
@@ -119,16 +124,16 @@ if __name__ == '__main__':
     with open(os.path.join(root_dir, 'README.md')) as f:
         readme = f.read()
     with open(os.path.join(root_dir, 'requirements.txt')) as f:
-        requirements = [x.strip() for x in f if x.strip() != '']  
-    
+        requirements = [x.strip() for x in f if x.strip() != '']
+
     copyright = '%s <%s>' % (package.__author__, package.__email__)
     version = package.__version__
     author = package.__author__
     email = package.__email__
-    description=package.__doc__
-    license=package.__license__
-    keywords=package.__keywords__
-    url=package.__url__
+    description = package.__doc__
+    license_ = package.__license__
+    keywords = package.__keywords__
+    url = package.__url__
     requires = package.__requires__
     scipt_files = package.__scripts__
     scipt_files_long = [os.path.join(package_name, '%s.py' % x) for x in scipt_files]
@@ -136,7 +141,7 @@ if __name__ == '__main__':
     package_data = [os.path.join(dp, f) for dp, dn, fs in os.walk(data_dir) for f in fs]
     package_data = [x.replace('osm2sqlite\\', '') for x in package_data]
     command = sys.argv[1] if len(sys.argv) > 1 else None
-    
+
     if command in ['doc', 'docs']:
         build_docs(output_type='singlehtml', package_dir=package_dir, docs_dir=docs_dir, docs_build_dir=docs_build_dir)
     elif command in ['test', 'tests']:
@@ -152,4 +157,3 @@ if __name__ == '__main__':
         build()
     else:
         build()
-    
